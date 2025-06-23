@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Button Express</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 30px;
+            color: #ff66ff;
+            font-weight: bold;
+            text-shadow:
+                0 0 10px #ff00ff,
+                0 0 20px #ff00ff,
+                0 0 40px #ff00ff,
+                0 0 80px #ff00ff;
+            animation: glowPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% {
+                text-shadow:
+                    0 0 10px #ff00ff,
+                    0 0 20px #ff00ff,
+                    0 0 40px #ff00ff,
+                    0 0 80px #ff00ff;
+            }
+            50% {
+                text-shadow:
+                    0 0 5px #cc00cc,
+                    0 0 10px #cc00cc,
+                    0 0 20px #cc00cc,
+                    0 0 40px #cc00cc;
+            }
+        }
+
+        body {
+            background: linear-gradient(135deg, #1b1b2f, #2a003f);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 50px 80px;
+            border-radius: 30px;
+            box-shadow: 0 0 40px #8000ff44;
+            text-align: center;
+            transition: transform 0.4s ease;
+        }
+
+        .count {
+            font-size: 6rem;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, color 0.3s ease;
+            text-shadow: 0 0 10px #c471ed, 0 0 20px #8e44ad;
+        }
+
+        .count.update {
+            transform: scale(1.15);
+            color: #ff55ff;
+        }
+
+        .glow-button {
+            font-size: 1.4rem;
+            padding: 18px 50px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #6a0dad, #b84cff);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 25px #9b59b6;
+            transition: all 0.3s ease;
+        }
+
+        .glow-button:hover {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, #8e44ad, #ff00ff);
+            box-shadow: 0 0 30px #ff00ff, 0 0 40px #b84cff;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Button Express 🚀</h1>
+
+        <div id="online" style="
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #ff66ff;
+            text-shadow:
+                0 0 5px #ff00ff;
+            z-index: 9999;
+        ">
+            Çevrimiçi: 0
+        </div>
+        
+    <div class="container">
+        <div id="count" class="count">0</div>
+        <button id="increment-btn" class="glow-button">✨ Tıkla ✨</button>
+    </div>
+   
+        <script>
+            const onlineDisplay = document.getElementById("online");
+            const countDisplay = document.getElementById("count");
+            const button = document.getElementById("increment-btn");
+            let isClicking = false;
+
+            function animateCount(newVal) {
+                if (countDisplay.innerText !== String(newVal)) {
+                    countDisplay.classList.remove("update");
+                    void countDisplay.offsetWidth;
+                    countDisplay.innerText = newVal;
+                    countDisplay.classList.add("update");
+                }
+            }
+
+            function updateCount() {
+                fetch("/get_count")
+                    .then(res => res.json())
+                    .then(data => {
+                        animateCount(data.count);
+                        onlineDisplay.innerText = "Çevrimiçi: " +                                 data.online;
+                    });
+            }
+
+            button.addEventListener("click", () => {
+                if (isClicking) return;
+                isClicking = true;
+                button.disabled = true;
+
+                fetch("/increment", { method: "POST" })
+                    .then(res => res.json())
+                    .then(data => {
+                        animateCount(data.count);
+                        setTimeout(() => {
+                            isClicking = false;
+                            button.disabled = false;
+                        } ); // spam engeli: 0.3 saniye
+                    });
+            });
+
+            // Anlık güncelleme
+            updateCount();
+            setInterval(updateCount, 100);
+        </script>
+</body>
+</html>
